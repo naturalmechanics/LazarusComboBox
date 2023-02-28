@@ -1,0 +1,71 @@
+object Form1: TForm1
+  Left = 495
+  Height = 270
+  Top = 152
+  Width = 424
+  Caption = 'Form1'
+  ClientHeight = 270
+  ClientWidth = 424
+  OnCreate = FormCreate
+  LCLVersion = '2.2.4.0'
+  object BCPanel1: TBCPanel
+    Left = 87
+    Height = 34
+    Top = 74
+    Width = 170
+    Background.Color = clForm
+    Background.Gradient1.StartColor = clWhite
+    Background.Gradient1.EndColor = clBlack
+    Background.Gradient1.GradientType = gtLinear
+    Background.Gradient1.Point1XPercent = 0
+    Background.Gradient1.Point1YPercent = 0
+    Background.Gradient1.Point2XPercent = 0
+    Background.Gradient1.Point2YPercent = 100
+    Background.Gradient2.StartColor = clWhite
+    Background.Gradient2.EndColor = clBlack
+    Background.Gradient2.GradientType = gtLinear
+    Background.Gradient2.Point1XPercent = 0
+    Background.Gradient2.Point1YPercent = 0
+    Background.Gradient2.Point2XPercent = 0
+    Background.Gradient2.Point2YPercent = 100
+    Background.Gradient1EndPercent = 35
+    Background.Style = bbsColor
+    BevelInner = bvNone
+    BevelOuter = bvNone
+    BevelWidth = 1
+    Border.Color = clGrayText
+    Border.Style = bboSolid
+    BorderBCStyle = bpsBorder
+    Caption = 'BCPanel1'
+    FontEx.Color = clWindowText
+    FontEx.FontQuality = fqSystemClearType
+    FontEx.Shadow = False
+    FontEx.ShadowRadius = 5
+    FontEx.ShadowOffsetX = 5
+    FontEx.ShadowOffsetY = 5
+    FontEx.Style = []
+    ParentBackground = False
+    Rounding.RoundX = 5
+    Rounding.RoundY = 5
+    TabOrder = 0
+  end
+  object ComboBox1: TComboBox
+    Left = 264
+    Height = 32
+    Top = 72
+    Width = 100
+    Color = clScrollBar
+    ItemHeight = 24
+    Items.Strings = (
+      'dkflaksföaskdöl-aakvöakdv'
+      'ckdvjnaslkvöadöc,asdv'
+      'kdnv k-dnvdvdy,'
+    )
+    ItemWidth = 600
+    OnMouseWheel = ComboBox1MouseWheel
+    ReadOnly = True
+    Style = csOwnerDrawVariable
+    TabOrder = 1
+    Text = 'ComboBox1'
+  end
+end
