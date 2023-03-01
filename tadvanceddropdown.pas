@@ -22,6 +22,7 @@ type
 
       renderContainer : TBCPanel;
       dropDown        : TBCPanel;
+      itemView        : TListBox ;
 
       containerHeight : Integer;
       containerWidth  : Integer;
@@ -34,19 +35,29 @@ type
       containerFontStyles   : Array of Integer;
       containerFontBackGrounds : Array of TColor;
 
+      cpanels       : Array of TBCPanel;
+      sBarH         : TScrollbar;
+      sBarV         : TScrollBar;
+
       selectedItem : Integer;
 
       dropDownOn   : Boolean;
       dropDownWidth: Integer;
       dropDownHeight:Integer;
+      setFullWidth : Boolean;
+
+      bottom_ofAll  : Integer;
+      top_ofAll     : Integer;
+      bottomPadding : Integer;
+
+      debugLabel    : TBCLabel;
 
       constructor Create();
 
       procedure Initialize(entryItems: TStringArray);
       procedure Render(pPanel : TBCPanel);
       procedure toggleDropDown(Sender : TObject) ;
-      procedure scrollDropDownPanel(Sender: TObject; Shift: TShiftState;  WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
-
+      procedure selectItem(Sender: TObject; User: boolean);
 
 
 
@@ -72,13 +83,19 @@ procedure TAdvancedDropDownList.Initialize(entryItems: TStringArray);
 var
 
   i             : Integer;
-begin
+  totalHeight   : Integer;
+  maxWidth      : Integer;
+  fnt           : TFont;
+  currWidth     : Integer;
 
+  c             : TBitmap;
+begin
 
   renderContainer := TBCPanel.Create(Nil);
   renderContainer.Parent := Nil;
 
-
+  itemView := TListBox.Create(Nil);
+  itemView.Parent := Nil;
 
   setLength(items, 0);
   items         := entryitems;
@@ -136,6 +153,61 @@ begin
 
   dropDownWidth := -1;
   dropDownHeight:= -1;
+
+  setFullWidth  := False;
+
+  maxWidth    := 0;
+
+
+
+
+
+  totalHeight := 0;
+
+  for i := 0 to Length(items) - 1 do
+  begin
+
+   fnt       := TFont.Create;
+   fnt.Name  := containerFontNames[i];
+
+   c := TBitmap.Create;
+   c.Canvas.Font.Assign(fnt);
+   currWidth  := c.Canvas.TextWidth(items[i]) + 4; //-----------------------// Label width
+
+   c.Free;
+
+   itemView.Items.Add(items[i]);
+
+   if maxWidth < currWidth then
+   begin
+    maxWidth := currWidth;
+   end;
+
+   totalHeight:= totalHeight + fnt.GetTextHeight('AyTg') + 4 + 2;
+
+  end;
+
+  itemView.Height:=totalHeight+2;
+  itemView.Width:= maxWidth+4;
+
+  if (dropDownWidth <> -1) then
+  begin
+  itemView.Width:=dropDownWidth;
+  end;
+
+  if (dropDownHeight <> -1) then
+  begin
+  itemView.Height:=dropDownHeight;
+  end;
+
+  if not setFullWidth then
+  begin
+    itemView.Height := Floor(itemView.Height div 2)  ;
+  end;
+
+  itemView.OnSelectionChange:=@selectItem;
+
+
   {TODO : Implement bevel controls}
 end;
 
@@ -181,8 +253,9 @@ begin
   mPanel.Top    := 2;
 
   mPanel.Width  := mPanel.Height;
-  renderContainer.FontEx.PaddingRight:= mPanel.Width + 2;
-  renderContainer.FontEx.TextAlignment:=bcaCenter;
+  renderContainer.FontEx.PaddingRight:= mPanel.Width + 4;
+  renderContainer.FontEx.PaddingLeft :=                4;
+  renderContainer.FontEx.TextAlignment:=bcaLeftCenter;
   mPanel.Caption:='ᐯ';
   mPanel.Left   := renderContainer.Width - mPanel.Width - 2;
 
@@ -191,6 +264,11 @@ begin
   mPanel.FontEx.Color:=clWindowText;
   mPanel.OnClick:= @toggleDropDown;
 
+  bottom_ofAll  := -1;
+  top_ofAll     := -1;
+
+  bottomPadding := 2;
+
 
 
 end;
@@ -198,132 +276,42 @@ end;
 procedure TAdvancedDropDownList.toggleDropDown(Sender: TObject);
 var
   i             : Integer;
-  c             : TBitmap;
   cPanel        : TBCPanel;
-  cpanels       : Array of TBCPanel;
-  totalHeight   : Integer;
 
-  maxWidth      : Integer;
 
-  fnt           : TFont;
+
+
+
 begin
+
   if not dropDownOn then
   begin
-    dropDown := TBCPanel.Create((Sender as TBCPanel).Parent.Parent.Parent);
-    dropDown.Parent := (Sender as TBCPanel).Parent.Parent.Parent;
+    itemView.Parent := (Sender as TBCPanel).Parent.Parent.Parent;
 
+    itemView.Top:=((Sender as TBCPanel).Parent.Parent as TBCPanel).Top + ((Sender as TBCPanel).Parent.Parent as TBCPanel).Height;
+    itemView.Left:=((Sender as TBCPanel).Parent.Parent as TBCPanel).Left;
 
-    dropDown.Top:=((Sender as TBCPanel).Parent.Parent as TBCPanel).Top + ((Sender as TBCPanel).Parent.Parent as TBCPanel).Height;
-    dropDown.Left:=((Sender as TBCPanel).Parent.Parent as TBCPanel).Left;
-
-    dropDown.BevelOuter:=bvNone;
-
-    totalHeight := 0;
-
-    SetLength(cPanels, 0);
-
-
-    maxWidth    := 0;
-
-    for i := 0 to Length(items) - 1 do
-    begin
-      cPanel    := TBCPanel.Create(dropDown);
-      cPanel.Parent := dropDown;
-
-
-      fnt       := TFont.Create;
-      fnt.Name  := containerFontNames[i];
-
-      cPanel.Height := fnt.GetTextHeight('AyTg') + 4;
-
-      c := TBitmap.Create;
-      c.Canvas.Font.Assign(fnt);
-      cPanel.Width  := c.Canvas.TextWidth(items[i]) + 4; //---------------------// Label width
-
-      // showMessage( IntToStr (      c.Canvas.TextWidth(items[i])     ) + ' -- ' + IntToStr(i));
-
-      c.Free;
-
-      cPanel.Caption:= items[i];
-      cPanel.BevelOuter:=bvNone;
-
-      cPanel.FontEx.Color:= containerFontColors[i];
-      cPanel.FontEx.TextAlignment:=bcaLeftCenter;
-      cPanel.FontEx.PaddingLeft:=2;
-      cPanel.Color:= containerFontBackGrounds[i];
-      cPanel.Left := 2;
-      cPanel.Top  := totalHeight+2;
-
-      totalHeight:= totalHeight + cPanel.Height+2;
-
-      SetLength(cPanels, Length(cPanels) + 1);
-
-      cPanel.OnMouseWheel := @scrollDropDownPanel;
-
-      cPanels[Length(cPanels) - 1] := cPanel;
-
-      if maxWidth < cPanel.Width then
-      begin
-        maxWidth := cPanel.Width;
-      end;
-
-
-    end;
-
-
-
-
-
-    for i := 0 to Length(cPanels) - 1 do
-    begin
-      cPanels[i].Width:=maxWidth;
-    end;
-
-
-
-
-    dropDown.Height:=totalHeight+2;
-
-    dropDown.Border.Color:= containerBorderColor;
-    dropDown.Border.Width:= containerBorderWidth;
-
-    dropDown.Border.Style:=bboSolid;
-    dropDown.BorderBCStyle:= bpsBorder;
-
-    dropDown.Rounding.RoundX:=5;
-    dropDown.Rounding.RoundY:=5;
-
-    dropDown.Width:= maxWidth+4;
-    dropDown.Visible:=True;
-
-
-
-    if (dropDownWidth <> -1) then
-    begin
-      dropDown.Width:=dropDownWidth;
-    end;
-
-    if (dropDownHeight <> -1) then
-    begin
-      dropDown.Height:=dropDownHeight;
-    end;
-
-    dropDown.Height := Floor(dropDown.Height div 2)  ;
-
-
+    itemView.Visible:=True;
     dropDownOn      := True;
-
   end
   else
   begin
-    dropDown.Visible:=False;
+    itemView.Visible:=False;
     dropDownOn      :=False;
   end;
 end;
 
-procedure TAdvancedDropDownList.scrollDropDownPanel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
+procedure TAdvancedDropDownList.selectItem(Sender: TObject; User: boolean);
+var
+  lView         : TListBox;
 begin
-  ShowMessage('hello');
+  lView         := Sender as TListBox;
+
+  renderContainer.Caption:=lView.GetSelectedText;
+  selectedItem  := lView.ItemIndex;
+  itemView.Visible:=False;
+  dropDownOn      :=False;
+
 end;
 
 end.
