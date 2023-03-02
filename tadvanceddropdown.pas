@@ -194,7 +194,9 @@ begin
   itemView.Height:=totalHeight+2;
   itemView.Width:= maxWidth+4;
 
-  totalWidth    := maxWidth+30;
+  itemView.ScrollWidth := 10;
+
+  totalWidth    := maxWidth + 5;
 
 
   if (dropDownWidth <> -1) then
@@ -288,7 +290,7 @@ var
   i             : Integer;
   cPanel        : TBCPanel;
 
-
+  scWidth       : Integer;
 
 
 
@@ -312,6 +314,7 @@ begin
 
       end;
 
+
       // showMessage(   itemView.Parent.Name);
     end
     else
@@ -324,6 +327,8 @@ begin
     begin
 
       itemView.Width:=totalWidth;
+      scWidth         := itemView.Width - itemView.ClientWidth;
+      itemView.Width  := itemView.Width + scWidth;
 
     end;
 
