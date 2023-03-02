@@ -46,11 +46,15 @@ type
       dropDownHeight:Integer;
       setFullWidth : Boolean;
 
+      totalWidth   : Integer;
+
       bottom_ofAll  : Integer;
       top_ofAll     : Integer;
       bottomPadding : Integer;
 
       debugLabel    : TBCLabel;
+      allowOverFlow : Boolean;
+      overFlowCounter: Integer;
 
       constructor Create();
 
@@ -190,6 +194,9 @@ begin
   itemView.Height:=totalHeight+2;
   itemView.Width:= maxWidth+4;
 
+  totalWidth    := maxWidth+30;
+
+
   if (dropDownWidth <> -1) then
   begin
   itemView.Width:=dropDownWidth;
@@ -205,9 +212,12 @@ begin
     itemView.Height := Floor(itemView.Height div 2)  ;
   end;
 
+
+
   itemView.OnSelectionChange:=@selectItem;
 
-
+  allowOverFlow := False;
+  overFlowCounter:= 1;
   {TODO : Implement bevel controls}
 end;
 
@@ -286,10 +296,39 @@ begin
 
   if not dropDownOn then
   begin
-    itemView.Parent := (Sender as TBCPanel).Parent.Parent.Parent;
 
     itemView.Top:=((Sender as TBCPanel).Parent.Parent as TBCPanel).Top + ((Sender as TBCPanel).Parent.Parent as TBCPanel).Height;
     itemView.Left:=((Sender as TBCPanel).Parent.Parent as TBCPanel).Left;
+
+    if allowOverflow then
+    begin
+      itemView.Parent := (Sender as TBCPanel).Parent.Parent.Parent;
+      for i := 1 to overFlowCounter do
+      begin
+
+       itemView.Top:= itemView.Top + itemView.Parent.Top;
+       itemView.Left:=itemView.Left+ itemView.Parent.Left;
+       itemView.Parent := itemView.Parent.Parent;
+
+      end;
+
+      // showMessage(   itemView.Parent.Name);
+    end
+    else
+    begin
+     itemView.Parent := (Sender as TBCPanel).Parent.Parent.Parent;
+
+    end;
+
+    if setFullWidth then
+    begin
+
+      itemView.Width:=totalWidth;
+
+    end;
+
+
+
 
     itemView.Visible:=True;
     dropDownOn      := True;
@@ -315,4 +354,5 @@ begin
 end;
 
 end.
+
 
